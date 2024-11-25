@@ -5,6 +5,8 @@ import { appRouter } from './src/routes/index.js'
 
 const app = express()
 
+app.use(express.json())
+
 mongoose.connect(process.env.MONGO_URL)
     .then(() => console.log("Connected to database successfully!!"))
     .catch(err => console.log(`Database connection FAILED! ${err.message}`))
