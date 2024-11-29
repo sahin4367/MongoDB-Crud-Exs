@@ -70,11 +70,16 @@ const login = async (req, res, next) => {
     }
 
     const jwt_payload = {
-        sub: user._id
+        sub: user._id,
     }
 
     // 4. create jwt_token
-    const new_token = jwt.sign(jwt_payload, process.env.JWT_SECRET)
+    const new_token = jwt.sign(jwt_payload, process.env.JWT_SECRET, {
+        algorithm: "HS256",
+        expiresIn: "1d"
+    })
+
+    // jwt.verify("asdasdas", process.env.JWT_SECRET)
 
     res.json({
         access_token: new_token,

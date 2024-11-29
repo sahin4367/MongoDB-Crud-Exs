@@ -2,9 +2,13 @@ import 'dotenv/config'
 import express from "express"
 import mongoose from 'mongoose'
 import { appRouter } from './src/routes/index.js'
+import cors from "cors"
 
 const app = express()
 
+app.use(cors({
+    origin: "*"
+}))
 app.use(express.json())
 
 mongoose.connect(process.env.MONGO_URL)
