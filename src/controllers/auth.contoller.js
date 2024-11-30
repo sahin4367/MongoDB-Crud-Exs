@@ -2,6 +2,19 @@ import Joi from "joi"
 import bcrypt from "bcrypt"
 import { User } from "../models/user.model.js"
 import jwt from "jsonwebtoken"
+import nodemailer from "nodemailer"
+import { appConfig } from "../consts.js"
+
+const transporter = nodemailer.createTransport({
+    service: "Gmail",
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true,
+    auth: {
+        user: appConfig.EMAIL,
+        pass: appConfig.EMAIL_PASSWORD,
+    },
+});
 
 const register = async (req, res, next) => {
     // 1. validation
@@ -86,7 +99,34 @@ const login = async (req, res, next) => {
     })
 }
 
+const verifyEmail = async (req, res, next) => {
+    const user = req.user;
+
+    const mailOptions = {
+        from: appConfig.EMAIL,
+        to: req.user.email,
+        subject: "Hello from Div Mongo Blog",
+        text: "Please Verify your Email address",
+    };
+
+    // console.log("mailOptions", mailOptions);
+
+    transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            console.error("Error sending email: ", error);
+            return res.status(500).json({
+                message: error.message,
+                error,
+            })
+        } else {
+            console.log("Email sent: ", info);
+            return res.json({ message: "Check your email" })
+        }
+    });
+}
+
 export const AuthContoller = () => ({
     login,
     register,
+    verifyEmail,
 })
