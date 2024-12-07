@@ -15,6 +15,14 @@ const userSchema = new mongoose.Schema({
     isVerifiedEmail: {
         type: Boolean,
     },
+    code_expired_at: {
+        type: Date,
+    },
+    verifyCode: {
+        type: Number,
+    },
+    // uiid: {
+    // },
     password: {
         type: String,
         required: true,

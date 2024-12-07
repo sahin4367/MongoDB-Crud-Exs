@@ -4,6 +4,7 @@ import { User } from "../models/user.model.js"
 import jwt from "jsonwebtoken"
 import nodemailer from "nodemailer"
 import { appConfig } from "../consts.js"
+import moment from "moment"
 
 const transporter = nodemailer.createTransport({
     service: "Gmail",
@@ -101,14 +102,28 @@ const login = async (req, res, next) => {
 
 const verifyEmail = async (req, res, next) => {
     const user = req.user;
+    console.log("user", user);
+
+    // check user.isEmailVerified
+    if (user.isVerifiedEmail) return res.json({ message: "Email is already verified" })
+
+    // create random code with 6 digits
+    const randomCode = Math.floor(100000 + Math.random() * 999999);
+    // get current date and add 5 minutes
+    // const code_expired_at = new Date(Date.now() + appConfig.verifyCodeExpiteMinute * 60 * 1000);
+    const code_expired_at = moment().add(appConfig.verifyCodeExpiteMinute, "minutes")
+
+    user.code_expired_at = code_expired_at
+    user.verifyCode = randomCode
+
+    await user.save();
 
     const mailOptions = {
         from: appConfig.EMAIL,
         to: req.user.email,
-        subject: "Hello from Div Mongo Blog",
-        text: "Please Verify your Email address",
+        subject: 'Email Verification',
+        text: `Your verification code is: ${randomCode}`,
     };
-
     // console.log("mailOptions", mailOptions);
 
     transporter.sendMail(mailOptions, (error, info) => {
@@ -120,13 +135,73 @@ const verifyEmail = async (req, res, next) => {
             })
         } else {
             console.log("Email sent: ", info);
-            return res.json({ message: "Check your email" })
+            // rabbit mq
+            return res.json({
+                message: `Verification code sent to your email.
+                It will expire in ${appConfig.verifyCodeExpiteMinute} minutes.`
+            })
         }
     });
+}
+
+const checkEmailCode = async (req, res, next) => {
+    // const currentDate = new Date();
+    // const formattedDate = moment(currentDate).format("DD.MM.YYYY HH:mm")
+
+    try {
+        const validData = await Joi.object({
+            code: Joi.string()
+                .length(6)
+                .regex(/^[0-9]+$/)
+                .required()
+            // .messages({
+            //     "object.regex": "Must have at least 8 characters",
+            // }),
+        }).validateAsync(req.body, { abortEarly: false })
+
+        const user = req.user;
+        if (!user.verifyCode) {
+            return res.status(400).json({
+                message: "Verification code not found!"
+            })
+        }
+
+        // check expired date
+        if (user.code_expired_at < new Date()) {
+            return res.status(400).json({
+                message: "Verification code is expired!"
+            })
+        }
+
+        // +validData.code -> 123456
+        if (user.verifyCode !== Number(validData.code)) {
+            return res.status(400).json({
+                message: "Verification code is incorrect!"
+            })
+        }
+
+        user.isVerifiedEmail = true;
+        user.verifyCode = null;
+        user.code_expired_at = null;
+
+        await user.save();
+
+        return res.json({
+            message: "Email verified successfully!"
+        })
+
+    } catch (error) {
+        console.error("Error: ", error);
+        res.status(500).json({
+            message: error.message,
+            error,
+        })
+    }
 }
 
 export const AuthContoller = () => ({
     login,
     register,
     verifyEmail,
+    checkEmailCode
 })

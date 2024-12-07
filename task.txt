@@ -1,0 +1,11 @@
+/api/auth/forget-pass
+
+[STEP 1]
+1. validate req.body.email
+2. check is exists user with email
+3. if true ? create uuid token and save database for req.body.email
+4. redirect url -> config.clientBaseUrl + /verify?token=${uuidToken}
+5. send email
+
+[STEP 2]
+1. get token and check which has this token
