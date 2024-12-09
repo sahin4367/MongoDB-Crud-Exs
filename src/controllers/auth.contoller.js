@@ -48,7 +48,12 @@ const register = async (req, res, next) => {
     validData.password = await bcrypt.hash(validData.password, 10)
 
     // 3. complete register
-    const newUser = await User.create(validData)
+    const newUser = await User.create({
+        ...validData,
+        isVerifiedEmail: false,
+        verifyCode: null,
+        code_expired_at: null,
+    })
     res.status(201).json(newUser)
 }
 

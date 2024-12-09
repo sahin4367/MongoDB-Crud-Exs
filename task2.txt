@@ -1,0 +1,7 @@
+[Backend tasks]
+1. Blog edit
+2. Blog delete
+3. BONUS: Upload image (multer)
+
+[FE] -> (optional)
+1. integrate apis

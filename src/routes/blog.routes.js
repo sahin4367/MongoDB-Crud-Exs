@@ -9,7 +9,6 @@ const controller = BlogController()
 blogRoutes.post("/create", useAuth, controller.create)
 
 // -> /api/blog/list
-blogRoutes.get("/list", (req, res) => {
-    console.log("SALAM");
-    res.send("Blog List")
-})
+blogRoutes.get("/list", controller.getList)
+// -> /api/blog/123
+blogRoutes.get("/:id", controller.getById)

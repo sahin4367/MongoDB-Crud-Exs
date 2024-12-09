@@ -12,7 +12,9 @@ const schema = new mongoose.Schema({
         trim: true,
     },
     user: {
-        
+        type: mongoose.Schema.ObjectId,
+        ref: "User",
+        require: true,
     }
 })
 
