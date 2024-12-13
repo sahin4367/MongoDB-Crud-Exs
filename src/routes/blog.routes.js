@@ -9,6 +9,12 @@ const controller = BlogController()
 blogRoutes.post("/create", useAuth, controller.create)
 
 // -> /api/blog/list
-blogRoutes.get("/list", controller.getList)
+blogRoutes.get("/list",controller.getList)
 // -> /api/blog/123
-blogRoutes.get("/:id", controller.getById)
+blogRoutes.get("/:id", useAuth ,controller.getById)
+
+
+//delete : 
+blogRoutes.delete("/:id", useAuth ,controller.deleteById)
+//update : 
+blogRoutes.put('/:id',useAuth , controller.updateById)

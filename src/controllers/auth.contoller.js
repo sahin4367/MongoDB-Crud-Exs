@@ -113,7 +113,7 @@ const verifyEmail = async (req, res, next) => {
     if (user.isVerifiedEmail) return res.json({ message: "Email is already verified" })
 
     // create random code with 6 digits
-    const randomCode = Math.floor(100000 + Math.random() * 999999);
+    const randomCode = Math.floor(100000 + Math.random() * 900000);
     // get current date and add 5 minutes
     // const code_expired_at = new Date(Date.now() + appConfig.verifyCodeExpiteMinute * 60 * 1000);
     const code_expired_at = moment().add(appConfig.verifyCodeExpiteMinute, "minutes")
@@ -157,12 +157,10 @@ const checkEmailCode = async (req, res, next) => {
         const validData = await Joi.object({
             code: Joi.string()
                 .length(6)
-                .regex(/^[0-9]+$/)
+                .pattern(/^[0-9]+$/)
                 .required()
-            // .messages({
-            //     "object.regex": "Must have at least 8 characters",
-            // }),
-        }).validateAsync(req.body, { abortEarly: false })
+        }).validateAsync(req.body, { abortEarly: false });
+        
 
         const user = req.user;
         if (!user.verifyCode) {
@@ -203,6 +201,7 @@ const checkEmailCode = async (req, res, next) => {
         })
     }
 }
+
 
 export const AuthContoller = () => ({
     login,
