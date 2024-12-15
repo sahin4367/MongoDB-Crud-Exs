@@ -5,5 +5,6 @@ export const appConfig = {
     EMAIL: process.env.USER_EMAIL,
     EMAIL_PASSWORD: process.env.USER_PASSWORD,
     verifyCodeExpiteMinute: 3,
-    clientBaseUrl: "https://www.tap.az/verify?token=${uuidToken}"
+    clientBaseUrl: "https://www.tap.az/verify?token=${uuidToken}",
+    allowedImageTypes: ["image/jpg", "image/jpeg", "image/png"],
 }

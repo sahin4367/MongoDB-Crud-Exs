@@ -3,20 +3,26 @@ import { Blog } from "../models/blog.model.js"
 import jwt from "jsonwebtoken";
 import { appConfig } from "../consts.js";
 import { User } from "../models/user.model.js";
-import req from "express/lib/request.js";
+import fs from 'fs';    
+import path from "path";
+import { error } from "console";
+
+
 
 const create = async (req, res, next) => {
     const user = req.user;
     console.log(user);
-    
     if (!user.isVerifiedEmail) return res.status(400).json({
         message: "User email not verified!",
     })
-
     const { title, description } = await Joi.object({
         title: Joi.string().trim().min(3).max(50).required(),
         description: Joi.string().trim().min(10).max(1000).required(),
-    }).validateAsync(req.body, { abortEarly: false })
+        images: Joi.array().items(Joi.object()).min(1).required(),//images yaziriq bir bloga bir nece sekil elave edek deye 
+    }).validateAsync({
+        ...req.body,
+        images : req.files,
+    }, { abortEarly: false })
         .catch(err => {
             return res.status(422).json({
                 message: "Xeta bash verdi!",
@@ -28,6 +34,7 @@ const create = async (req, res, next) => {
         title,
         description,
         user: user.id,
+        img_path : req.files.filename,
     })
         .then(newBlog => res.status(201).json(newBlog))
         .catch(error => res.status(500).json({
@@ -35,6 +42,8 @@ const create = async (req, res, next) => {
             error,
         }))
 }
+
+
 
 const getList = async (req, res, next) => {
     try {
@@ -67,19 +76,49 @@ const getById = async (req, res, next) => {
     res.json(blog)
 }
 
+// Bu kod yanliz blogu silir ...
+// const deleteById = async (req,res,next) => {
+//     const id = req.params.id;
+//     if (!id) return res.status(400).json({message : `Id required!`});
+
+//     try {
+//         const deletedBlog = await Blog.findByIdAndDelete(id);
+//         if (!deletedBlog) {
+//             return res.status(404).json({message : `Blog not fund!`})
+//         }
+//         res.json({message : `Blog delete saccsesfully!` , blog : deletedBlog})
+//     } catch (error) {
+//         res.status(500).json({message : "Xeta bas verdi!" , error})
+        
+//     }
+// }
+
 const deleteById = async (req,res,next) => {
     const id = req.params.id;
-    if (!id) return res.status(400).json({message : `Id required!`});
-
+    if (!id) return res.status(400).json({message : `id required!`})
+    
     try {
         const deletedBlog = await Blog.findByIdAndDelete(id);
         if (!deletedBlog) {
-            return res.status(404).json({message : `Blog not fund!`})
+            return res.status(404).json({message : `blog not found`})
         }
-        res.json({message : `Blog delete saccsesfully!` , blog : deletedBlog})
+
+        const imgPath = path.join("upload" , deletedBlog.img_path);
+        fs.unlink(imgPath , (err) => {
+            if (err) {
+                console.error("Failed to delete image:" , err);
+                return res.status(500).json({
+                    message : `blog deleted , but failed to delete image!`,
+                    error : err
+                })
+            }
+            res.json({message : `blod and image deleted saccessfully.` , blog : deletedBlog})
+        })
     } catch (error) {
-        res.status(500).json({message : "Xeta bas verdi!" , error})
-        
+        res.status(500).json({
+            message : `Xeta bas verdi !`,
+            error
+        })
     }
 }
 

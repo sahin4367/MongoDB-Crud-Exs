@@ -15,7 +15,12 @@ const schema = new mongoose.Schema({
         type: mongoose.Schema.ObjectId,
         ref: "User",
         require: true,
+    },
+    img_path : {
+        type : String,
+        required : true,
     }
+    
 })
 
 export const Blog = mongoose.model("Blog", schema);
